@@ -10,7 +10,6 @@
 	
 	<node pkg="stdr_robot" type="robot_handler" name="$(anon robot_spawn_0)" args="add $(find ROBO)/resources/robots/pandora_robot.yaml 1 2 0" />
 	<node pkg="stdr_robot" type="robot_handler" name="$(anon robot_spawn_1)" args="add $(find ROBO)/resources/robots/simplex.yaml 1 4.5 0" />
-	
     <node pkg="stdr_robot" type="robot_handler" name="$(anon robot_spawn_2)" args="add $(find ROBO)/resources/robots/simplex.yaml 7 4 3.14" />
 
 </launch>
