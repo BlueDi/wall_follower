@@ -12,6 +12,19 @@ np.set_printoptions(precision=2)
 
 orbit = 0
 
+linear_vel = 0.1
+angular_vel = 0.4
+kd = 0.4  # KD = Keep Distance
+kdf = 0.30
+kds = 0.35
+
+inf = float('inf')
+
+left = -1
+going_left = -2
+right = 1
+going_right = 2
+
 
 def calculate_lasers_range(data):
     '''Dynamic range intervals'''
@@ -36,38 +49,24 @@ def calculate_lasers_range(data):
     return interval
 
 
+def log_info(orbit, w, nw, n, ne, e):
+    rospy.loginfo("Orbit: %s, W : %s, NW: %s, N : %s, NE: %s, E : %s", orbit, w, nw, n, ne, e)
+
+
 def laser_callback(data):
     global orbit
 
-    # Configuration
-    linear_vel = 0.1
-    angular_vel = 0.4
-    kd = 0.4  # KD = Keep Distance
-    kdf = 0.30
-    kds = 0.35
-
-    inf = float('inf')
-
-    left = -1
-    going_left = -2
-    right = 1
-    going_right = 2
-
-    # Lasers
     e, ne, n, nw, w = calculate_lasers_range(data)
 
-    # Feedback
-    rospy.loginfo("Orbit: %s, W : %s, NW: %s, N : %s, NE: %s, E : %s", orbit,
-                  w, nw, n, ne, e)
+    log_info(orbit, w, nw, n, ne, e)
 
-    # Determine Action
     linear = 0
     angular = 0
     forward = False
     turn_left = False
     turn_right = False
 
-    if (orbit == 0):  # Not orbiting yet
+    if (orbit == 0):
         if (w < kds):
             orbit = left
         elif (e < kds):
@@ -105,18 +104,6 @@ def laser_callback(data):
                 turn_right = True
             else:
                 turn_left = True
-    elif (orbit == right):
-        if (n > kdf and (w > kds or e > kds)):
-            forward = True
-        if (w <= kds and e <= kds):
-            turn_right = True
-        elif (nw <= kd or ne <= kd):
-            turn_right = True
-        else:
-            if (ne < kd or nw < kd or n < kdf):
-                turn_right = True
-            else:
-                turn_left = True
 
     # right
     if (turn_left):
@@ -136,7 +123,7 @@ def laser_callback(data):
 
 
 def sonar_callback(data):
-    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.range)
+    pass
 
 
 def listeners():
