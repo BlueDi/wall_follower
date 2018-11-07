@@ -12,7 +12,7 @@ def laser_callback(data):
     global orbit
 
     # Configuration
-    linear_vel = 0.2
+    linear_vel = 0.1
     angular_vel = 0.4
     kd = 0.4 # KD = Keep Distance
     kdf = 0.30
