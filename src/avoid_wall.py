@@ -56,6 +56,27 @@ def log_info(orbit, w, nw, n, ne, e):
                   w, nw, n, ne, e)
 
 
+def create_velocity_message(turn_left, turn_right, forward):
+    angular = 0
+    linear = 0
+    if (turn_left):
+        angular += angular_vel
+    if (turn_right):
+        angular -= angular_vel
+    if (forward):
+        linear = linear_vel
+    vel_msg = Twist()
+    vel_msg.linear.x = linear
+    vel_msg.angular.z = angular
+    return vel_msg
+
+
+def publish_velocity_message(vel_msg):
+    vel_pub = rospy.Publisher(
+        '/robot' + sys.argv[1] + '/cmd_vel', Twist, queue_size=10)
+    vel_pub.publish(vel_msg)
+
+
 def laser_callback(data):
     global orbit
 
@@ -123,22 +144,9 @@ def laser_callback(data):
             else:
                 turn_right = True
 
-
-    # right
-    if (turn_left):
-        angular += angular_vel
-    if (turn_right):
-        angular -= angular_vel
-    if (forward):
-        linear = linear_vel
-
-    # Post
-    vel_pub = rospy.Publisher(
-        '/robot' + sys.argv[1] + '/cmd_vel', Twist, queue_size=10)
-    vel_msg = Twist()
-    vel_msg.linear.x = linear
-    vel_msg.angular.z = angular
-    vel_pub.publish(vel_msg)
+    vel_msg = create_velocity_message(turn_left, turn_right, forward)
+    
+    publish_velocity_message(vel_msg)
 
 
 def sonar_callback(data):
