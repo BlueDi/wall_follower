@@ -11,6 +11,7 @@ from sensor_msgs.msg import Range
 np.set_printoptions(precision=2)
 
 orbit = 0
+laser_sensors = {'w': 0, 'nw': 0, 'n': 0, 'ne': 0, 'e': 0}
 
 linear_vel = 0.1
 angular_vel = 0.4
@@ -28,6 +29,7 @@ going_right = 2
 
 def calculate_lasers_range(data):
     '''Dynamic range intervals'''
+    global laser_sensors
     half_pi = np.pi / 2
     initial_angle = 0
     if data.angle_min < -half_pi:
@@ -48,12 +50,19 @@ def calculate_lasers_range(data):
         ):int(initial_angle + i * laser_interval + half_laser_interval) + 1]
         interval[i] = np.mean(np.nan_to_num(dirty_values))
 
-    return interval
+    laser_sensors['e'] = interval[0]
+    laser_sensors['ne'] = interval[1]
+    laser_sensors['n'] = interval[2]
+    laser_sensors['nw'] = interval[3]
+    laser_sensors['w'] = interval[4]
 
 
-def log_info(orbit, w, nw, n, ne, e):
+def log_info():
+    '''Initial orbit state'''
+    global orbit, laser_sensors
     rospy.loginfo("Orbit: %s, W : %s, NW: %s, N : %s, NE: %s, E : %s", orbit,
-                  w, nw, n, ne, e)
+                  laser_sensors['w'], laser_sensors['nw'], laser_sensors['n'],
+                  laser_sensors['ne'], laser_sensors['e'])
 
 
 def create_velocity_message(turn_left, turn_right, forward):
@@ -78,11 +87,11 @@ def publish_velocity_message(vel_msg):
 
 
 def laser_callback(data):
-    global orbit
+    global orbit, laser_sensors
 
-    e, ne, n, nw, w = calculate_lasers_range(data)
+    calculate_lasers_range(data)
 
-    log_info(orbit, w, nw, n, ne, e)
+    log_info()
 
     linear = 0
     angular = 0
@@ -91,55 +100,63 @@ def laser_callback(data):
     turn_right = False
 
     if (orbit == 0):
-        if (w < wall_distance_side):
+        if (laser_sensors['w'] < wall_distance_side):
             orbit = left
-        elif (e < wall_distance_side):
+        elif (laser_sensors['e'] < wall_distance_side):
             orbit = right
-        elif (nw < wall_distance):
+        elif (laser_sensors['nw'] < wall_distance):
             orbit = going_left
             turn_right = True
-        elif (ne < wall_distance):
+        elif (laser_sensors['ne'] < wall_distance):
             orbit = going_right
             turn_left = True
-        elif (n < wall_distance_forward):
+        elif (laser_sensors['n'] < wall_distance_forward):
             orbit = going_left
             turn_right = True
         else:
             forward = True
     elif (orbit == going_left or orbit == going_right):
-        if (w < wall_distance_side):
+        if (laser_sensors['w'] < wall_distance_side):
             orbit = left
-        elif (e < wall_distance_side):
+        elif (laser_sensors['e'] < wall_distance_side):
             orbit = right
         elif (orbit == going_left):
             turn_right = True
         elif (orbit == going_right):
             turn_left = True
     elif (orbit == left):
-        if (n > wall_distance_forward
-                and (w > wall_distance_side or e > wall_distance_side)):
+        if (laser_sensors['n'] > wall_distance_forward
+                and (laser_sensors['w'] > wall_distance_side
+                     or laser_sensors['e'] > wall_distance_side)):
             forward = True
-        if (w <= wall_distance_side and e <= wall_distance_side):
+        if (laser_sensors['w'] <= wall_distance_side
+                and laser_sensors['e'] <= wall_distance_side):
             turn_right = True
-        elif (nw <= wall_distance or ne <= wall_distance):
+        elif (laser_sensors['nw'] <= wall_distance
+              or laser_sensors['ne'] <= wall_distance):
             turn_right = True
         else:
-            if (ne < wall_distance or nw < wall_distance
-                    or n < wall_distance_forward):
+            if (laser_sensors['ne'] < wall_distance
+                    or laser_sensors['nw'] < wall_distance
+                    or laser_sensors['n'] < wall_distance_forward):
                 turn_right = True
             else:
-                turn_left = True                
+                turn_left = True               
     elif (orbit == right):
-        if (n > wall_distance_forward
-                and (w > wall_distance_side or e > wall_distance_side)):
+        if (laser_sensors['n'] > wall_distance_forward
+                and (laser_sensors['w'] > wall_distance_side
+                     or laser_sensors['e'] > wall_distance_side)):
             forward = True
-        if (w <= wall_distance_side and e <= wall_distance_side):
+        if (laser_sensors['w'] <= wall_distance_side
+                and laser_sensors['e'] <= wall_distance_side):
             turn_left = True
-        elif (nw <= wall_distance or ne <= wall_distance):
+        elif (laser_sensors['nw'] <= wall_distance
+              or laser_sensors['ne'] <= wall_distance):
             turn_left = True
         else:
-            if (ne < wall_distance or nw < wall_distance
-                    or n < wall_distance_forward):
+            if (laser_sensors['ne'] < wall_distance
+                    or laser_sensors['nw'] < wall_distance
+                    or laser_sensors['n'] < wall_distance_forward):
                 turn_left = True
             else:
                 turn_right = True
