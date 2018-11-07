@@ -94,7 +94,7 @@ def laser_callback(data):
             turn_right = True
         elif (orbit == going_right):
             turn_left = True
-    elif (abs(orbit) == left):
+    elif (orbit == left):
         if (n > wall_distance_forward
                 and (w > wall_distance_side or e > wall_distance_side)):
             forward = True
@@ -107,7 +107,22 @@ def laser_callback(data):
                     or n < wall_distance_forward):
                 turn_right = True
             else:
+                turn_left = True                
+    elif (orbit == right):
+        if (n > wall_distance_forward
+                and (w > wall_distance_side or e > wall_distance_side)):
+            forward = True
+        if (w <= wall_distance_side and e <= wall_distance_side):
+            turn_left = True
+        elif (nw <= wall_distance or ne <= wall_distance):
+            turn_left = True
+        else:
+            if (ne < wall_distance or nw < wall_distance
+                    or n < wall_distance_forward):
                 turn_left = True
+            else:
+                turn_right = True
+
 
     # right
     if (turn_left):
