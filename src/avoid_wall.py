@@ -14,9 +14,9 @@ orbit = 0
 
 linear_vel = 0.1
 angular_vel = 0.4
-kd = 0.4  # KD = Keep Distance
-kdf = 0.30
-kds = 0.35
+wall_distance = 0.4
+wall_distance_forward = 0.30
+wall_distance_side = 0.35
 
 inf = float('inf')
 
@@ -28,13 +28,13 @@ going_right = 2
 
 def calculate_lasers_range(data):
     '''Dynamic range intervals'''
-    half_pi = np.pi/2
+    half_pi = np.pi / 2
     initial_angle = 0
     if data.angle_min < -half_pi:
         default_min_angle = half_pi / data.angle_increment
         robot_initial_angle = -data.angle_min / data.angle_increment
         initial_angle = robot_initial_angle - default_min_angle
-    if data.angle_max > np.pi/2:
+    if data.angle_max > np.pi / 2:
         final_angle = data.angle_max / data.angle_increment
 
     laser_interval = (len(data.ranges) - initial_angle) / 5
@@ -42,15 +42,18 @@ def calculate_lasers_range(data):
 
     interval = [None] * 5
     interval[0] = np.mean(data.ranges[int(initial_angle):int(laser_interval)])
-    for i in range(1,5):
-        dirty_values = data.ranges[int(initial_angle + i * laser_interval - half_laser_interval):int(initial_angle + i * laser_interval + half_laser_interval) + 1]
+    for i in range(1, 5):
+        dirty_values = data.ranges[int(
+            initial_angle + i * laser_interval - half_laser_interval
+        ):int(initial_angle + i * laser_interval + half_laser_interval) + 1]
         interval[i] = np.mean(np.nan_to_num(dirty_values))
 
     return interval
 
 
 def log_info(orbit, w, nw, n, ne, e):
-    rospy.loginfo("Orbit: %s, W : %s, NW: %s, N : %s, NE: %s, E : %s", orbit, w, nw, n, ne, e)
+    rospy.loginfo("Orbit: %s, W : %s, NW: %s, N : %s, NE: %s, E : %s", orbit,
+                  w, nw, n, ne, e)
 
 
 def laser_callback(data):
@@ -67,40 +70,41 @@ def laser_callback(data):
     turn_right = False
 
     if (orbit == 0):
-        if (w < kds):
+        if (w < wall_distance_side):
             orbit = left
-        elif (e < kds):
+        elif (e < wall_distance_side):
             orbit = right
-        elif (nw < kd):
+        elif (nw < wall_distance):
             orbit = going_left
             turn_right = True
-        elif (ne < kd):
+        elif (ne < wall_distance):
             orbit = going_right
             turn_left = True
-        elif (n < kdf):
-            # out of space but nothing on other beams, rotate somewhere
+        elif (n < wall_distance_forward):
             orbit = going_left
             turn_right = True
         else:
             forward = True
     elif (orbit == going_left or orbit == going_right):
-        if (w < kds):
+        if (w < wall_distance_side):
             orbit = left
-        elif (e < kds):
+        elif (e < wall_distance_side):
             orbit = right
         elif (orbit == going_left):
             turn_right = True
         elif (orbit == going_right):
             turn_left = True
-    elif (orbit == left):
-        if (n > kdf and (w > kds or e > kds)):
+    elif (abs(orbit) == left):
+        if (n > wall_distance_forward
+                and (w > wall_distance_side or e > wall_distance_side)):
             forward = True
-        if (w <= kds and e <= kds):
+        if (w <= wall_distance_side and e <= wall_distance_side):
             turn_right = True
-        elif (nw <= kd or ne <= kd):
+        elif (nw <= wall_distance or ne <= wall_distance):
             turn_right = True
         else:
-            if (ne < kd or nw < kd or n < kdf):
+            if (ne < wall_distance or nw < wall_distance
+                    or n < wall_distance_forward):
                 turn_right = True
             else:
                 turn_left = True
