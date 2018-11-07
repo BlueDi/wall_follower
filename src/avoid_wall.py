@@ -32,14 +32,17 @@ def calculate_lasers_range(data):
     global laser_sensors
     half_pi = np.pi / 2
     initial_angle = 0
+    final_angle = 0
     if data.angle_min < -half_pi:
         default_min_angle = half_pi / data.angle_increment
         robot_initial_angle = -data.angle_min / data.angle_increment
         initial_angle = robot_initial_angle - default_min_angle
     if data.angle_max > np.pi / 2:
-        final_angle = data.angle_max / data.angle_increment
+        default_max_angle = half_pi / data.angle_increment
+        robot_final_angle = data.angle_max / data.angle_increment
+        final_angle = robot_final_angle - default_max_angle
 
-    laser_interval = (len(data.ranges) - initial_angle) / 5
+    laser_interval = (len(data.ranges) - initial_angle - final_angle) / 5
     half_laser_interval = laser_interval / 2
 
     interval = [None] * 5
@@ -48,7 +51,10 @@ def calculate_lasers_range(data):
         dirty_values = data.ranges[int(
             initial_angle + i * laser_interval - half_laser_interval
         ):int(initial_angle + i * laser_interval + half_laser_interval) + 1]
+        print i
+        print dirty_values
         interval[i] = np.mean(np.nan_to_num(dirty_values))
+        print interval[i]
 
     laser_sensors['e'] = interval[0]
     laser_sensors['ne'] = interval[1]
@@ -90,6 +96,7 @@ def laser_callback(data):
     global orbit, laser_sensors
 
     calculate_lasers_range(data)
+    print laser_sensors
 
     log_info()
 
