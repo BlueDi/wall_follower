@@ -51,10 +51,7 @@ def calculate_lasers_range(data):
         dirty_values = data.ranges[int(
             initial_angle + i * laser_interval - half_laser_interval
         ):int(initial_angle + i * laser_interval + half_laser_interval) + 1]
-        print i
-        print dirty_values
         interval[i] = np.mean(np.nan_to_num(dirty_values))
-        print interval[i]
 
     laser_sensors['e'] = interval[0]
     laser_sensors['ne'] = interval[1]
@@ -66,7 +63,8 @@ def calculate_lasers_range(data):
 def log_info():
     '''Initial orbit state'''
     global orbit, laser_sensors
-    rospy.loginfo("Orbit: %s, W : %s, NW: %s, N : %s, NE: %s, E : %s", orbit,
+    orbit_values = {-2: 'Going Left', -1: 'Left', 0: 'Undefined', 1: 'Right', 2: 'Going Right'}
+    rospy.loginfo("Orbit: %s, W : %s, NW: %s, N : %s, NE: %s, E : %s", orbit_values[orbit],
                   laser_sensors['w'], laser_sensors['nw'], laser_sensors['n'],
                   laser_sensors['ne'], laser_sensors['e'])
 
@@ -96,7 +94,6 @@ def laser_callback(data):
     global orbit, laser_sensors
 
     calculate_lasers_range(data)
-    print laser_sensors
 
     log_info()
 
