@@ -14,7 +14,7 @@ robot:
           max_angle: 1.570796
           min_angle: -1.570796
           max_range: 1
-          min_range: 0.2
+          min_range: 0.1
           num_rays: 5
           frequency: 10
           frame_id: laser_0
