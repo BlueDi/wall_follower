@@ -1,7 +1,7 @@
 # Wall Follower - A Simple Reactive Robot
 
 <center>
-  <img src="img/example.png" />
+  <img src="img/example.png" width="100%" />
 </center>
 
 In this project you'll find a robot that can follow a wall.
