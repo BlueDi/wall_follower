@@ -1,4 +1,9 @@
 # Wall Follower - A Simple Reactive Robot
+
+<center>
+  <img src="img/example.png" />
+</center>
+
 In this project you'll find a robot that can follow a wall.
 
 It was developed using ROS and STDR Simulator.
